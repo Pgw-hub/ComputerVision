@@ -1,0 +1,42 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/superres/test/test_main.cpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_superres",
+				"AccuracyTest"
+			]
+		},
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/superres/test/test_superres.cpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_superres",
+				"AccuracyTest"
+			]
+		},
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/superres/test/test_precomp.hpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_superres",
+				"AccuracyTest"
+			]
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"Main",
+			"opencv_superres",
+			"AccuracyTest"
+		],
+		"name" : "opencv_test_superres"
+	}
+}

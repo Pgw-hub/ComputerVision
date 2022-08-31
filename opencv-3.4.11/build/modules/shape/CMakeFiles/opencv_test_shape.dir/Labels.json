@@ -1,0 +1,42 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/shape/test/test_main.cpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_shape",
+				"AccuracyTest"
+			]
+		},
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/shape/test/test_shape.cpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_shape",
+				"AccuracyTest"
+			]
+		},
+		{
+			"file" : "/Users/parkgeonwoo/Documents/document/2022-2/ComputerVision/opencv-3.4.11/modules/shape/test/test_precomp.hpp",
+			"labels" : 
+			[
+				"Main",
+				"opencv_shape",
+				"AccuracyTest"
+			]
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"Main",
+			"opencv_shape",
+			"AccuracyTest"
+		],
+		"name" : "opencv_test_shape"
+	}
+}
