@@ -29,10 +29,9 @@ int main() {
             break;
         }
         imshow("video",frame);
-        if(time_in_msec <= 3000) waitKey(delay);
+        if(time_in_msec < 3000) waitKey(delay);
         else waitKey(0);
 
-        cout << "msec : " << time_in_msec << endl;
         cout << "frames: " << curr_frame << " / " << total_frames << endl;
     }
 }
