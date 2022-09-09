@@ -15,8 +15,14 @@ int main(){
     }
 
     //rotate
-    Mat trans_image;
-    rotate(image, trans_image, ROTATE_90_COUNTERCLOCKWISE);
+    Mat trans_image = image.clone();
+    // rotate(image, trans_image, ROTATE_90_COUNTERCLOCKWISE);
+    for(int row = 0; row < image.rows; ++row){
+        for(int col = 0;  col < image.cols; ++col){
+            trans_image.at<uchar>(image.cols - col - 1, row) = image.at<uchar>(row,col);
+        }
+    }
+    cout << "image rows, cols" << image.rows << "\t" << image.cols <<  endl;
 
     //refer table
     for(int i = 0; i < 256; ++i){
