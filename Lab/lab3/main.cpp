@@ -8,7 +8,7 @@ int main(){
 
     //moon
     Mat image,sharpmoon,abs_sharpmoon, sharpening;
-    image = imread("../data/moon.png",0);
+    image = imread("moon.png",0);
     imshow("moon",image);
 
     //roi설정 이미지 만들기
@@ -33,7 +33,7 @@ int main(){
 
     //slatnpepper
     Mat image2,median_salt;
-    image2 = imread("../data/saltnpepper.png",0);
+    image2 = imread("saltnpepper.png",0);
     imshow("saltnpepper",image2);
 
     //roi설정 이미지 만들기
