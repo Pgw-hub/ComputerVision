@@ -7,18 +7,22 @@ using namespace cv;
 int main(){
 
     //moon
-    Mat image,sharpmoon,abs_sharpmoon, sharpening;
+    Mat image;
     image = imread("moon.png",0);
     imshow("moon",image);
 
     //roi설정 이미지 만들기
     Rect rect(image.cols/2, 0, image.cols/2, image.rows);
     Mat rect_roi = image(rect);
-    
+
     //roi한사진 sharpening하기
-    Laplacian(rect_roi,sharpmoon,CV_16S,1,1,0);
-    convertScaleAbs(sharpmoon,abs_sharpmoon);
-    sharpening = abs_sharpmoon + rect_roi;
+    Mat unsharp_mask, sharpening, avg_image;
+    unsharp_mask.convertTo(unsharp_mask,CV_16S);
+    sharpening.convertTo(unsharp_mask,CV_16S);
+
+    blur(rect_roi, avg_image, Size(3,3));
+    unsharp_mask = rect_roi - avg_image;
+    sharpening = rect_roi + (6 * unsharp_mask);
 
     //최종 답은 원본이미지와 sharpening이미지 반반합쳐서 만들기
     Mat answer = image.clone();
@@ -32,7 +36,7 @@ int main(){
     imshow("moon_filtered",answer);
 
     //slatnpepper
-    Mat image2,median_salt;
+    Mat image2;
     image2 = imread("saltnpepper.png",0);
     imshow("saltnpepper",image2);
 
@@ -54,10 +58,7 @@ int main(){
         }
     }
     imshow("saltnpepper_filtered",answer2);
-
     waitKey(0);
-
-    
 
     return 0;
 }
