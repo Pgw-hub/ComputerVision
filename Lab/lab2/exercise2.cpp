@@ -22,8 +22,6 @@ int main(){
             trans_image.at<uchar>(image.cols - col - 1, row) = image.at<uchar>(row,col);
         }
     }
-    cout << "image rows, cols" << image.rows << "\t" << image.cols <<  endl;
-
     //refer table
     for(int i = 0; i < 256; ++i){
         pix[i] = saturate_cast<uchar>(pow((float)(i / 255.0),gamma) * 255.0f);
