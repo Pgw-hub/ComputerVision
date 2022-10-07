@@ -16,7 +16,6 @@ int main(){
 	}
 
 	double fps = cap.get(CAP_PROP_FPS);
-	int total_frames = cap.get(CAP_PROP_FRAME_COUNT);
 	int delay = 1000/fps;
 
 	Mat ROI_1, ROI_2, result;
@@ -47,7 +46,6 @@ int main(){
 		//Hough lines
 		HoughLines(ROI_1,lines, 3,CV_PI / 180, 150, 0, 0, (CV_PI/180) * 30,(CV_PI/180) * 60);
 		HoughLines(ROI_2,lines_2,3,CV_PI / 180, 150, 0, 0, (CV_PI/180) * 120,(CV_PI/180) * 150);
-		
 		//draw lines using lines array
 		frame = averageDraw(lines,frame,0);
 		frame = averageDraw(lines_2,frame,1);
@@ -56,8 +54,8 @@ int main(){
 		moveWindow("Left canny",200,0);
 		imshow("Right canny",ROI_2);
 		moveWindow("Right canny",600,0);	
-
 		imshow("Frame",frame);
+
         if(time_in_msec < 20000) waitKey(delay);
         else break;
 	}
