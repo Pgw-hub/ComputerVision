@@ -28,7 +28,7 @@ int main(){
     int delay = 1000 / fps;
 
     int input;
-    int status;
+    int status = 0;
     int curr_status;
     while(1){
         cap >> frame;
@@ -37,42 +37,42 @@ int main(){
             cout << "end of video" << endl;
             break;
         }
-        //한번 누르면 그 상태로 계속 함수에 들어가야함.
-        //그런데 지금은 waitKey가 frame을 매번 받고 있기 때문에, 한번만 바뀌고 그 다음에는 바뀌지 않음.
         curr_status = waitKey(delay);
-        if(curr_status == 'n' || curr_status =='g' || curr_status == 'h' || curr_status == 's' || curr_status == 'c' || curr_status == 'a' || curr_status == 'w' || curr_status == 'r'){
+        if(curr_status == 'n' || curr_status =='g' || curr_status == 'h' || curr_status == 's' || curr_status == 'c' || curr_status == 'a' || curr_status == 'w' || curr_status == 'r' || curr_status == 27){
             status = curr_status;
         }
 
 
         switch(status){
-            case 'n' :
+            case 'n' : //ok
                 frame = NegaTrans(frame);
                 break;
-            case 'g' :
+            case 'g' : //ok
                 frame = GammaTrans(frame);
                 break;
-            case 'h' :
+            case 'h' : //ok 
                 frame = HistEqual(frame);
                 break;
-            case 's' :
+            case 's' : //ok
                 frame = ColorSlicing(frame);
                 break; 
-            case 'c' :
+            case 'c' : //ok
                 frame = ColorConversion(frame);
                 break;  
-            case 'a' :
+            case 'a' : //ok
                 frame = AvgFiltering(frame);
                 break; 
-            case 'w' :
+            case 'w' : //ok
                 frame = WhiteBalancing(frame);
                 break; 
-            case 'r' :
-                cout << input << endl;
+            case 'r' : //ok
                 break; 
+            case 27 :
+                exit(-1);
+                break;
                 }
         
-        imshow("frame", frame);
+        imshow("video", frame);
     }
 
     return 0;
@@ -138,19 +138,17 @@ Mat GammaTrans(Mat frame){
 
     cvtColor(frame, HSV, CV_BGR2HSV);
     split(HSV,gt);
-
+    
     for(int i = 0; i < 256; ++i){
-        pix[i] = saturate_cast<uchar>(pow((float)(i / 255.0), gamma) * 255.0f); 
+        pix[i] = saturate_cast<uchar>(pow((float)(i / 255.0), gamma) * 255.0f);
     }
-
-    gamma_img = frame.clone();
 
     for(int j = 0; j < rows; ++j){
+        v = gt[2].ptr<uchar>(j);
         for(int i = 0; i < cols; ++i){
-            gamma_img.at<uchar>(j,i) = pix[gamma_img.at<uchar>(j,i)];
+            v[i] = pix[v[i]];
         }
     }
-
     merge(gt,gamma_img);
     cvtColor(gamma_img, gamma_img, CV_HSV2BGR);
 
@@ -204,7 +202,7 @@ Mat ColorConversion(Mat frame){
         h = cc[0].ptr<uchar>(j);
         s = cc[1].ptr<uchar>(j);
         for(int i = 0; i < cols; ++i){
-            if(h[i] + 50 > 179) h[i] + 50 - 179;//왜 굳이 이렇게 해주는 거지?..
+            if(h[i] + 50 > 179) h[i] + 50 - 179;
             else h[i] += 50;
         }
     }
