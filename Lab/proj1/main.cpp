@@ -215,9 +215,21 @@ Mat ColorConversion(Mat frame){
 
 Mat AvgFiltering(Mat frame){
 
-    blur(frame, frame, Size(9,9));
+    Mat HSV, filtered_img;
+    vector<Mat> af(3);
 
-    return frame;
+    int rows = frame.rows;
+    int cols = frame.cols;
+    uchar* v;
+
+    cvtColor(frame, HSV, CV_BGR2HSV);
+    split(HSV,af);
+
+    blur(af[2],af[2],Size(9,9));
+    merge(af,filtered_img);
+    cvtColor(filtered_img, filtered_img, CV_HSV2BGR);
+
+    return filtered_img;
 }
 
 Mat WhiteBalancing(Mat frame){
