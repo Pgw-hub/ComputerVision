@@ -7,6 +7,13 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
+#define WORK_RATIO 5
+
+void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec);
+
+//flag
+int car_detected;
+int human_detected;
 
 int main(){
 
@@ -30,21 +37,47 @@ int main(){
     double fps = cap.get(CAP_PROP_FPS);
     int delay = 1000 / fps;
 
+    int working = 0;
 
     while(1){
         cap >> frame;
-        // if(frame.empty()){
-            // cout << "end of video" << endl;
-            // break;
-        // }
+        if(frame.empty()){
+            cout << "end of video" << endl;
+            break;
+        }
 
         if(frame.channels() == 4) cvtColor(frame,frame, COLOR_BGRA2BGR); 
 
-        //Convert Mat to batch of images
-        Mat inputBlob = blobFromImage(frame, 1 / 255.F, Size(416, 416), Scalar(), true, false);
-        net.setInput(inputBlob, "data");
-        Mat detectionMat = net.forward("detection_out");
+        //Working(Yolo)
+        if(working % WORK_RATIO == 0){
+            //Convert Mat to batch of images
+            Mat inputBlob = blobFromImage(frame, 1 / 255.F, Size(416, 416), Scalar(), true, false);
+            net.setInput(inputBlob, "data");
+            Mat detectionMat = net.forward("detection_out");
+            Yolo(detectionMat, frame, classNamesVec);
+        }
 
+        //post labeling
+        if(car_detected > 0){
+            putText(frame,"Car Detected nearby!",Point(50,50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0,0,255));
+        }
+        cout << car_detected << endl;
+        car_detected--;
+        working++;
+        imshow("YOLO: Detections",frame);
+        if(waitKey(delay) >= 0) break;
+        }
+        return 0;
+    }
+
+
+
+
+
+
+
+
+void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec){
         float confidenceThreshold = 0.24;
 
         for(int i = 0; i < detectionMat.rows; ++i){
@@ -66,18 +99,28 @@ int main(){
                 Rect object(p1,p2);
                 Scalar object_roi_color(0,255,0);
 
-                rectangle(frame, object, object_roi_color);
                 String className = objectClass < classNamesVec.size() ? classNamesVec[objectClass] : cv::format("unknown(%d)",objectClass);
                 String label = format("%s: %.2f",className.c_str(), confidence);
                 int baseLine = 0;
 
-                Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-                rectangle(frame, Rect(p1,Size(labelSize.width, labelSize.height + baseLine)), object_roi_color, FILLED);
-                putText(frame, label, p1 + Point(0,labelSize.height), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,0,0));
+                //flag handling
+                if(className == "car"){
+                    car_detected = 5;
+                    rectangle(frame, object, Scalar(0,0,255));
+                }
+                else if(className == "human"){
+                    human_detected = 5;
+                    rectangle(frame, object, Scalar(255,0,0));
+                }
+                else{
+                    rectangle(frame, object, object_roi_color);
+                }
+
+                // Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+                // rectangle(frame, Rect(p1,Size(labelSize.width, labelSize.height + baseLine)), object_roi_color, FILLED);
+                // putText(frame, label, p1 + Point(0,labelSize.height), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,0,0));
+
+
             }
         }
-        imshow("YOLO: Detections",frame);
-        if(waitKey(1) >= 0) break;
-        }
-        return 0;
-    }
+}
