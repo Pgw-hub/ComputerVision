@@ -153,12 +153,9 @@ void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec){
                     front_clear = 10;
                 }
                 imshow("roi",nearby);
-
                 // Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
                 // rectangle(frame, Rect(p1,Size(labelSize.width, labelSize.height + baseLine)), object_roi_color, FILLED);
                 // putText(frame, label, p1 + Point(0,labelSize.height), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,0,0));
-
-
             }
         }
 }

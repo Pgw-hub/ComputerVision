@@ -11,18 +11,25 @@ using namespace dnn;
 #define FILT_SIZE 9
 #define MOR_SIZE 5
 
+void LineDetection(Mat& frame);
 void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec);
 Mat bgSub(Mat background, Mat src);
+void averageDraw(vector<Vec2f> lines, Mat& frame, int dummy);
 
 //flag
 int car_detected;
 int human_detected;
-
 int me_moving;
 bool front_clear;
 bool front_car = false;
 int moving_text = 0; 
 bool st_flag = false;
+
+//lane_departure
+int line_text;
+bool left_line = false;
+bool mid_line = false;
+bool right_line = false;
 
 int main(){
 
@@ -50,7 +57,8 @@ int main(){
 
     while(1){
         cap >> frame;
-        int curr_frame = cap.get(CAP_PROP_POS_FRAMES);
+        Mat frame_ld = frame.clone();
+        int n = cap.get(CAP_PROP_POS_FRAMES);
         if(frame.empty()){
             cout << "end of video" << endl;
             break;
@@ -62,8 +70,8 @@ int main(){
         Mat nearby_frame = frame(nearby_rect);
         Rect front_rect(330, frame.rows - 200, 10, 100);
         Mat front_frame = frame(front_rect);
-        imshow("near frame", nearby_frame);
-        imshow("front frame",front_frame);
+        // imshow("near frame", nearby_frame);
+        // imshow("front frame",front_frame);
  
 
         //Working
@@ -86,9 +94,10 @@ int main(){
         //background sub
         Mat nearby_result = bgSub(nearby_background, nearby_frame);
         Mat front_result = bgSub(front_background, front_frame); 
-        imshow("nearby",nearby_result);
-        imshow("front",front_result);
+        // imshow("nearby",nearby_result);
+        // imshow("front",front_result);
 
+        //detect moving or not
         for(int i = 0; i < nearby_result.cols; ++i){
             for(int j = 0; j < nearby_result.rows; ++j){
                 int nearby_value = nearby_result.at<uchar>(j,i);
@@ -108,21 +117,31 @@ int main(){
             }
         }
 
-        if(front_clear == true && me_moving < 0) {
-            moving_text = 40;
-            cout << "Now! ";
+        if(front_clear == true && me_moving < 0 && n < 268) {
+            moving_text = 60;
+        }
+        if(left_line == false && mid_line == true && right_line == false){
+            line_text = 10;
         }
 
+        //line detection
+        LineDetection(frame);
 
         //post labeling
         if(car_detected > 0){
-            putText(frame,"Car Detected nearby!",Point(50,50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0,0,255));
+            putText(frame,"Car Detected nearby!",Point(90,150), FONT_HERSHEY_DUPLEX, 1.5, Scalar(0,0,255),2);
         }
-        if(moving_text > 0 && curr_frame < 350){
-            putText(frame,"Start Moving!",Point(50,100), FONT_HERSHEY_TRIPLEX, 1, Scalar(255,0,0));
+        if(human_detected > 0){
+            putText(frame,"Human Detected nearby!",Point(65,300), FONT_HERSHEY_DUPLEX, 1.5, Scalar(0,255,0),2);
+        }
+        if(moving_text > 0){
+            putText(frame,"Start Moving!",Point(180,200), FONT_HERSHEY_DUPLEX, 1.5, Scalar(255,0,0),2);
+        }
+        if(line_text > 0){
+            putText(frame,"Lane departure!",Point(150,250), FONT_HERSHEY_DUPLEX, 1.5, Scalar(0,0,255),2);
         }
 
-        cout << "[front_clear] : " << front_clear << " [me_moving] : " << me_moving << " [front_car] : " << front_car << endl;
+        // cout << "[front_clear] : " << front_clear << " [me_moving] : " << me_moving << " [front_car] : " << front_car << endl;
         // cout << "[Car_detected] : " << car_detected << " [moving_text] : " << moving_text << endl;
         //adjusting flags
         car_detected--;
@@ -130,10 +149,13 @@ int main(){
         working++;
         front_clear = false;
         me_moving--;
+        line_text--;
+        human_detected--;
 
-        imshow("YOLO: Detections",frame);
+        imshow("Project3",frame);
         if(waitKey(delay) >= 0) break;
         }
+
         return 0;
     }
 
@@ -180,17 +202,20 @@ void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec){
                 String className = objectClass < classNamesVec.size() ? classNamesVec[objectClass] : cv::format("unknown(%d)",objectClass);
                 String label = format("%s: %.2f",className.c_str(), confidence);
                 int baseLine = 0;
+                // cout << className << endl;
 
                 //flag handling
                 if(className == "car"){
                     rectangle(frame, object, Scalar(0,0,255));
                     if(object.area() > 30000){
-                        car_detected = 5;
+                        car_detected = 10;
                     }
                 }
-                else if(className == "human"){
-                    human_detected = 5;
-                    rectangle(frame, object, Scalar(255,0,0));
+                else if(className == "person"){
+                    rectangle(frame, object, Scalar(0,255,0));
+                    if(object.area() > 5000){
+                        human_detected = 10;
+                    }
                 }
                 else{
                     rectangle(frame, object, object_roi_color);
@@ -198,3 +223,108 @@ void Yolo(Mat& detectionMat, Mat& frame, vector<String>& classNamesVec){
             }
         }
 }
+
+void LineDetection(Mat& frame){
+
+   Mat ROI_left, ROI_right, ROI_mid, result;
+   vector<Vec2f> lines_left, lines_mid, lines_right;
+   int width = frame.cols;
+   int height = frame.rows;
+
+   Rect rect_left(50,height - 200, 250, 200);
+   Rect rect_mid(300,height - 230, 100, 230);
+   Rect rect_right(400, height - 200, 250, 200);
+
+   ROI_left = frame(rect_left);
+   ROI_mid = frame(rect_mid);
+   ROI_right = frame(rect_right);
+   
+   cvtColor(ROI_left, ROI_left, CV_BGR2GRAY);
+   cvtColor(ROI_mid, ROI_mid, CV_BGR2GRAY);
+   cvtColor(ROI_right, ROI_right, CV_BGR2GRAY);
+
+   blur(ROI_left,ROI_left,Size(5,5));
+   blur(ROI_mid,ROI_mid,Size(5,5));
+   blur(ROI_right,ROI_right,Size(5,5));
+
+   Canny(ROI_left,ROI_left, 10,60);
+   Canny(ROI_mid,ROI_mid, 10,60);
+   Canny(ROI_right,ROI_right, 10,60);
+
+   HoughLines(ROI_left,lines_left, 3, CV_PI / 180, 150, 0, 0, (CV_PI/180) * 30, (CV_PI/180) * 50);
+   HoughLines(ROI_mid,lines_mid, 3, CV_PI / 180, 150, 0, 0, (CV_PI/180) * -10, (CV_PI/180) * 10);
+   HoughLines(ROI_right,lines_right, 3, CV_PI / 180, 150, 0, 0, (CV_PI/180) * 120, (CV_PI/180) * 130);
+
+   averageDraw(lines_left, frame, 0);
+   averageDraw(lines_mid, frame, 1);
+   averageDraw(lines_right, frame, 2);
+
+//    imshow("left",ROI_left);
+//    moveWindow("left",0,400);
+//    imshow("mid",ROI_mid);
+//    moveWindow("mid",250,400);
+//    imshow("right",ROI_right);
+//    moveWindow("right",500,400);
+}
+
+void averageDraw(vector<Vec2f> lines, Mat& frame, int dummy){
+	float rho = 0;
+    float theta = 0;
+    float a = 0;
+    float b = 0; 
+    float x0 = 0;
+    float y0 = 0;
+	Point p1, p2;
+    int width = frame.cols;
+    int height = frame.rows;
+
+	//get average value
+	for(int i = 0; i < lines.size(); ++i){
+		rho += lines[i][0];
+		theta += lines[i][1];
+	}
+	rho = rho / lines.size();
+	theta = theta / lines.size();
+    if(dummy == 0){// left
+        if(lines.size() != 0) left_line = true;
+        else left_line = false;
+
+        // cout << "[left] rho : " << rho << "theta : " << theta << "line size : " << lines.size() << endl;
+    }
+    else if(dummy == 1){//mid
+        if(lines.size() != 0) mid_line = true;
+        else mid_line = false;
+        
+        // cout << "[mid] rho : " << rho << "theta : " << theta << "line size : " << lines.size() << endl;
+    }
+    else if(dummy == 2){//right
+        if(lines.size() != 0) right_line = true;
+        else right_line = false;
+
+        // cout << "[right] rho : " << rho << "theta : " << theta << "line size : " << lines.size() << endl;
+    }
+
+	
+	//get coordinate
+	a = cos(theta);
+	b = sin(theta);
+	if(dummy == 0){
+		x0 = a * rho + 50;
+		y0 = b * rho + (height - 200);
+	}
+    else if(dummy == 1){
+		x0 = a * rho + 300;
+		y0 = b * rho + (height - 230);
+    }
+	else if(dummy == 2){
+		x0 = a * rho + 400;
+		y0 = b * rho + (height - 200);	
+	}
+
+	//draw
+	p1 = Point(cvRound(x0 + 1000 * (-b)), cvRound(y0 + 1000 * a));
+	p2 = Point(cvRound(x0 - 1000 * (-b)), cvRound(y0 - 1000 * a));
+	// line(frame,p1,p2,Scalar(0,0,255), 3, 8);
+}
+
+
