@@ -40,7 +40,6 @@ int main(){
 
         resize(query, query, Size(640,480));
         resize(image, image, Size(640,480));
-        
 
         //computing ORB features
         orbF->detectAndCompute(query, noArray(), keypoints1, descriptor1);

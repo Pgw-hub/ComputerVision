@@ -14,7 +14,7 @@ int main(){
     Mat frame, background, image, result;
     VideoCapture cap;
 
-    if(cap.open("Project2.mp4") == 0){
+    if(cap.open("Project2_1.mp4") == 0){
         cout << "no such file!!" << endl;
         exit(-1);
     }
@@ -53,6 +53,7 @@ int main(){
 
         //backgroundsubtraction
         Mat result = bgSub(background, frame);
+        imshow("bs",result);
 
         //findcontours
         findContours(result, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -60,7 +61,7 @@ int main(){
         for(int i = 0; i < contours.size(); ++i){
             boundRect[i] = boundingRect(Mat(contours[i]));
             if(boundRect[i].area() > 2000){
-                moving_detect = 3;
+                moving_detect = 5;
             }
         }
 
